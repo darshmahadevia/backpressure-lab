@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Activity,
   AlertCircle,
@@ -7,10 +8,13 @@ import {
   Database,
   Gauge,
   Layers3,
+  Menu,
   Radio,
   Server,
+  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { ThemeToggle } from './Theme'
 
 const scenarioRows: Array<{
   id: string
@@ -50,8 +54,13 @@ const scenarioRows: Array<{
 ]
 
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const closeMenu = () => setMenuOpen(false)
+
   return (
     <div className="landing-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="landing-header">
         <a className="brand" href="/" aria-label="Backpressure Lab home">
           <span className="brand-mark"><Activity size={17} strokeWidth={2.4} /></span>
@@ -62,12 +71,32 @@ export default function LandingPage() {
           <a href="#scenarios">Scenarios</a>
           <a href="#model">The model</a>
         </nav>
-        <a className="header-action" href="/lab?scenario=traffic-spike">
-          Open the lab <ArrowUpRight size={16} aria-hidden="true" />
-        </a>
+        <div className="header-actions">
+          <ThemeToggle />
+          <a className="header-action" href="/lab?scenario=traffic-spike">
+            Open the lab <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+          <button
+            className="mobile-nav-toggle"
+            type="button"
+            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            {menuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          </button>
+        </div>
+        {menuOpen && (
+          <nav className="mobile-nav-panel" aria-label="Mobile navigation">
+            <a href="#why" onClick={closeMenu}>Why it matters</a>
+            <a href="#scenarios" onClick={closeMenu}>Scenarios</a>
+            <a href="#model" onClick={closeMenu}>The model</a>
+            <a href="/lab?scenario=traffic-spike" onClick={closeMenu}>Open the lab</a>
+          </nav>
+        )}
       </header>
 
-      <main>
+      <main id="main-content">
         <section className="landing-hero" aria-labelledby="landing-title">
           <div className="landing-hero-copy">
             <h1 id="landing-title">When traffic outruns capacity, <span>the system tells you why.</span></h1>

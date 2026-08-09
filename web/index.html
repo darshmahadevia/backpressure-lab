@@ -6,6 +6,15 @@
     <meta name="theme-color" content="#07111f" />
     <meta name="description" content="A visual laboratory for understanding backend overload and backpressure." />
     <title>Backpressure Lab</title>
+    <script>
+      try {
+        const storedTheme = localStorage.getItem('backpressure-theme')
+        const systemTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        document.documentElement.dataset.theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : systemTheme
+      } catch (_) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
   </head>
   <body>
     <!--

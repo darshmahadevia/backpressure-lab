@@ -1,10 +1,13 @@
 @import 'tailwindcss';
 
 :root {
+  color-scheme: dark;
   --canvas: #101210;
   --canvas-deep: #0b0d0c;
   --surface: #171a18;
   --surface-raised: #1d211f;
+  --surface-soft: #202521;
+  --surface-warm: #1d1b17;
   --rule: #2a302b;
   --rule-strong: #3b443c;
   --ink: #ebe8df;
@@ -15,11 +18,37 @@
   --signal: #a9b9b0;
   --success: #a8b79b;
   --danger: #d77e73;
+  --header-bg: rgba(16, 18, 16, 0.96);
+  --menu-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", var(--font-mono);
   color: var(--ink);
   background: var(--canvas);
-  font-family: "IBM Plex Sans", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #f4f1eb;
+  --canvas-deep: #e9e5dc;
+  --surface: #fffdf8;
+  --surface-raised: #f0ece4;
+  --surface-soft: #e9e5dc;
+  --surface-warm: #f1e8da;
+  --rule: #d9d4c9;
+  --rule-strong: #bcb6aa;
+  --ink: #1b1e1b;
+  --ink-muted: #5e645d;
+  --ink-faint: #7b8178;
+  --accent: #996622;
+  --accent-soft: #9f7948;
+  --signal: #50736a;
+  --success: #58734e;
+  --danger: #a64f47;
+  --header-bg: rgba(244, 241, 235, 0.96);
+  --menu-shadow: 0 14px 34px rgba(55, 48, 38, 0.16);
 }
 
 * {
@@ -35,6 +64,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: var(--canvas);
+  transition: background-color 220ms ease, color 220ms ease;
 }
 
 button,
@@ -66,6 +96,50 @@ input:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 10px;
+  left: 12px;
+  padding: 9px 12px;
+  color: var(--canvas-deep);
+  background: var(--accent);
+  border-radius: 4px;
+  transform: translateY(-160%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.theme-toggle {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--ink);
+  background: var(--surface-raised);
+  border-color: var(--accent-soft);
+}
+
+.theme-toggle svg {
+  color: var(--accent);
 }
 
 main {
@@ -131,6 +205,27 @@ main {
   border-color: #dfb577;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-nav-toggle {
+  width: 36px;
+  height: 36px;
+  display: none;
+  place-items: center;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+}
+
+.mobile-nav-panel {
+  display: none;
+}
+
 .button-quiet {
   color: var(--ink-muted);
   background: transparent;
@@ -181,7 +276,7 @@ main {
 .lab-back,
 .status-chip,
 .signal-list span {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
 }
 
 /* Landing page */
@@ -204,7 +299,7 @@ main {
   justify-content: space-between;
   gap: 28px;
   border-bottom: 1px solid var(--rule);
-  background: rgba(16, 18, 16, 0.96);
+  background: var(--header-bg);
 }
 
 .landing-nav {
@@ -378,7 +473,7 @@ main {
 
 .system-node span {
   color: var(--ink-faint);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -387,7 +482,7 @@ main {
 .system-node strong {
   overflow: hidden;
   color: var(--ink);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
   text-overflow: ellipsis;
@@ -480,7 +575,7 @@ main {
   color: var(--canvas-deep);
   background: var(--accent);
   border-radius: 50%;
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
 }
@@ -604,7 +699,7 @@ main {
 
 .scenario-effect {
   color: var(--accent-soft);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
 }
@@ -658,7 +753,7 @@ main {
   gap: 20px;
   color: var(--ink-faint);
   border-top: 1px solid var(--rule);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -666,7 +761,7 @@ main {
 
 .landing-footer .brand {
   color: var(--ink-muted);
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--font-sans);
   font-size: 12px;
   letter-spacing: -0.02em;
   text-transform: none;
@@ -695,7 +790,7 @@ main {
   justify-content: space-between;
   gap: 25px;
   border-bottom: 1px solid var(--rule);
-  background: rgba(16, 18, 16, 0.96);
+  background: var(--header-bg);
 }
 
 .lab-back {
@@ -718,7 +813,7 @@ main {
   padding-left: 12px;
   color: var(--ink-faint);
   border-left: 1px solid var(--rule);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   font-style: normal;
   font-weight: 400;
@@ -809,7 +904,7 @@ main {
 
 .lab-heading-note strong {
   color: var(--ink);
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -868,20 +963,107 @@ main {
   font-weight: 600;
 }
 
-select {
+.scenario-menu {
+  position: relative;
   width: 100%;
-  min-height: 44px;
-  padding: 0 36px 0 12px;
+}
+
+.scenario-trigger {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   color: var(--ink);
+  text-align: left;
   background: var(--surface-raised);
   border: 1px solid var(--rule-strong);
   border-radius: 4px;
-  outline: none;
-  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease;
 }
 
-select:hover {
+.scenario-trigger:hover:not(:disabled),
+.scenario-menu.is-open .scenario-trigger {
+  background: var(--surface-soft, var(--surface-raised));
   border-color: var(--accent-soft);
+}
+
+.scenario-trigger > span,
+.scenario-option > span {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.scenario-trigger strong,
+.scenario-option strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-trigger small,
+.scenario-option small {
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scenario-trigger > svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+  transition: transform 180ms ease;
+}
+
+.scenario-menu.is-open .scenario-trigger > svg {
+  transform: rotate(180deg);
+}
+
+.scenario-options {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  max-height: 290px;
+  overflow-y: auto;
+  padding: 5px;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 5px;
+  box-shadow: var(--menu-shadow);
+  animation: menu-in 150ms ease-out both;
+}
+
+.scenario-option {
+  min-height: 53px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.scenario-option:hover,
+.scenario-option.is-highlighted {
+  background: var(--surface-raised);
+}
+
+.scenario-option.is-selected strong,
+.scenario-option > svg {
+  color: var(--accent);
 }
 
 input[type="range"] {
@@ -1069,7 +1251,7 @@ input[type="range"] {
 
 .pipeline-stage strong {
   color: var(--ink);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: clamp(16px, 2vw, 24px);
   font-weight: 500;
   letter-spacing: -0.06em;
@@ -1132,7 +1314,7 @@ input[type="range"] {
 .operator-reading-state {
   margin-left: auto;
   color: var(--accent);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1168,7 +1350,7 @@ input[type="range"] {
   display: block;
   margin: 13px 0 7px;
   color: var(--ink);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: clamp(18px, 2.2vw, 26px);
   font-weight: 500;
   letter-spacing: -0.07em;
@@ -1211,7 +1393,7 @@ input[type="range"] {
 
 .chart-title > span {
   color: var(--accent);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
 }
 
@@ -1256,7 +1438,7 @@ input[type="range"] {
   justify-content: center;
   gap: 8px;
   color: var(--ink-faint);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
 }
 
@@ -1265,7 +1447,7 @@ input[type="range"] {
   top: 6px;
   right: 8px;
   color: var(--ink-faint);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
 }
 
@@ -1287,7 +1469,7 @@ input[type="range"] {
   margin-top: 28px;
   padding: 22px;
   border: 1px solid var(--accent-soft);
-  background: #1d1b17;
+  background: var(--surface-warm);
 }
 
 .summary-intro h2 {
@@ -1321,7 +1503,7 @@ input[type="range"] {
   display: block;
   min-height: 26px;
   color: var(--ink-faint);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   line-height: 1.4;
   text-transform: uppercase;
@@ -1331,10 +1513,49 @@ input[type="range"] {
   display: block;
   margin-top: 9px;
   color: var(--ink);
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: clamp(16px, 1.8vw, 23px);
   font-weight: 500;
   letter-spacing: -0.06em;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-hero-copy {
+  animation: rise-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.system-figure {
+  animation: rise-in 560ms 80ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lab-heading,
+.lab-layout {
+  animation: rise-in 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lab-layout {
+  animation-delay: 70ms;
 }
 
 @media (max-width: 1100px) {
@@ -1370,8 +1591,47 @@ input[type="range"] {
 }
 
 @media (max-width: 800px) {
+  .landing-header {
+    position: sticky;
+  }
+
   .landing-nav {
     display: none;
+  }
+
+  .mobile-nav-toggle {
+    display: grid;
+  }
+
+  .mobile-nav-panel {
+    position: absolute;
+    z-index: 25;
+    top: calc(100% + 1px);
+    right: 14px;
+    left: 14px;
+    display: grid;
+    gap: 3px;
+    padding: 7px;
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    box-shadow: var(--menu-shadow);
+    animation: menu-in 150ms ease-out both;
+  }
+
+  .mobile-nav-panel a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 11px;
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  .mobile-nav-panel a:hover,
+  .mobile-nav-panel a:focus-visible {
+    color: var(--ink);
+    background: var(--surface-raised);
   }
 
   .landing-hero {
@@ -1475,6 +1735,25 @@ input[type="range"] {
 }
 
 @media (max-width: 560px) {
+  .landing-header,
+  .lab-header {
+    gap: 10px;
+  }
+
+  .header-actions {
+    gap: 5px;
+  }
+
+  .theme-toggle {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .theme-toggle span {
+    display: none;
+  }
+
   .landing-header,
   .lab-header {
     padding: 0 14px;

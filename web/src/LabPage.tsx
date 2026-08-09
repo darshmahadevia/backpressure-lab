@@ -20,6 +20,8 @@ import {
   X,
 } from 'lucide-react'
 import { fetchScenarios, getExperiment, startExperiment, stopExperiment, streamExperiment } from './api'
+import { ScenarioMenu } from './ScenarioMenu'
+import { ThemeToggle } from './Theme'
 import type { ChartPoint, ExperimentView, ScenarioInfo, Snapshot, SystemState } from './types'
 
 const emptySnapshot: Snapshot = {
@@ -188,6 +190,7 @@ export default function LabPage() {
 
   return (
     <div className="lab-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="lab-header">
         <a className="lab-back" href="/">
           <ArrowLeft size={16} aria-hidden="true" />
@@ -197,10 +200,11 @@ export default function LabPage() {
         <div className="lab-header-meta">
           <span className="lab-header-label">EXPERIMENT / BASELINE</span>
           <StatusChip state={currentState} label={statusText} />
+          <ThemeToggle />
         </div>
       </header>
 
-      <main className="lab-main">
+      <main className="lab-main" id="main-content">
         <div className="lab-heading">
           <div>
             <h1>Run a condition.</h1>
@@ -223,10 +227,12 @@ export default function LabPage() {
             <div className="lab-form">
               <label className="field-label">
                 <span>Scenario</span>
-                <select value={selectedScenario} onChange={(event) => handleScenarioChange(event.target.value)} disabled={isActive || isStarting}>
-                  {scenarios.length === 0 && <option value="traffic-spike">Loading scenarios…</option>}
-                  {scenarios.map((scenario) => <option value={scenario.id} key={scenario.id}>{scenario.name}</option>)}
-                </select>
+                <ScenarioMenu
+                  options={scenarios}
+                  value={selectedScenario}
+                  onChange={handleScenarioChange}
+                  disabled={isActive || isStarting}
+                />
               </label>
               <label className="field-label duration-field">
                 <span>Duration <strong>{duration}s</strong></span>
@@ -253,7 +259,7 @@ export default function LabPage() {
                   </button>
                 )}
               </div>
-              {selected && <p className="scenario-description">{selected.description}</p>}
+              {selected && <p className="scenario-description">Peak offered rate: {formatRate(selected.peakRate)}</p>}
             </div>
             <div className="watch-list">
               <span className="panel-label">WATCH FOR</span>

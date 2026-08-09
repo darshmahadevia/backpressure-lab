@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource-variable/ibm-plex-sans'
 import App from './App'
 import './index.css'
 

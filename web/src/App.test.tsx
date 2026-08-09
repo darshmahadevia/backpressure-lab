@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import LabPage from './LabPage'
+import { ThemeProvider } from './Theme'
 import type { ExperimentView, ScenarioInfo, Snapshot } from './types'
 import * as api from './api'
 
@@ -102,7 +103,11 @@ describe('Backpressure Lab surfaces', () => {
   it('starts a lab run and surfaces the live overload signal', async () => {
     const user = userEvent.setup()
     window.history.replaceState({}, '', '/lab?scenario=traffic-spike')
-    render(<LabPage />)
+    render(
+      <ThemeProvider>
+        <LabPage />
+      </ThemeProvider>,
+    )
 
     await user.click(await screen.findByRole('button', { name: /run experiment/i }))
 
