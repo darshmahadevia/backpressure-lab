@@ -81,7 +81,7 @@ export default function LandingPage() {
           <div className="landing-hero-copy">
             <h1 id="landing-title">See what happens when work arrives faster than it leaves.</h1>
             <p className="landing-lede">
-              Backpressure Lab is a small, real-concurrency experiment for watching overload emerge: work arrives, waits, contends, times out, and recovers.
+              Backpressure Lab makes overload observable: work arrives, waits, contends for finite worker slots, times out, and recovers.
             </p>
             <div className="landing-actions">
               <a className="button button-primary" href={labHref}>Open the experiment <ArrowRight size={15} aria-hidden="true" /></a>
@@ -101,31 +101,32 @@ export default function LandingPage() {
             </div>
             <SystemDiagram />
             <figcaption>
-              The experiment changes offered load or dependency behavior. The queue and tail latency show the cost.
+              Offered work enters, accepted work waits, workers drain what they can, and the dependency determines how much capacity remains.
             </figcaption>
           </figure>
         </section>
 
         <section className="method-section" aria-labelledby="method-title">
           <div className="section-lede">
-            <h2 id="method-title">One condition. One live run.</h2>
-            <p>Change one thing, then watch the relationship between arrival rate and finite capacity become observable.</p>
+            <h2 id="method-title">Follow one request through the system.</h2>
+            <p>Every live snapshot separates the work that arrives, waits, executes, and finishes so the cost of overload has somewhere to land.</p>
           </div>
           <div className="method-list">
-            <div><strong>01</strong><span>Work enters the system.</span></div>
-            <div><strong>02</strong><span>Workers reach their limit.</span></div>
-            <div><strong>03</strong><span>Waiting time becomes the signal.</span></div>
+            <div><strong>01</strong><span><b>Incoming</b> — offered load</span></div>
+            <div><strong>02</strong><span><b>Queue</b> — accepted but waiting</span></div>
+            <div><strong>03</strong><span><b>Workers</b> — finite active slots</span></div>
+            <div><strong>04</strong><span><b>Outcomes</b> — complete, fail, timeout</span></div>
           </div>
         </section>
 
         <section className="experiment-section" id="experiment" aria-labelledby="experiment-title">
           <div className="section-lede">
             <h2 id="experiment-title">Choose a condition.</h2>
-            <p>Each preset makes a different part of the mechanism visible.</p>
+            <p>Each preset changes one part of the environment. Start with the traffic spike if you want to see overload and recovery in one short run.</p>
           </div>
           <ScenarioPicker options={scenarioRows} value={selectedScenario} onChange={chooseScenario} />
           <div className="selection-line">
-            <span>{selected.effect}</span>
+            <span><b>watch for</b> {selected.effect}</span>
             <a className="text-link" href={labHref}>Run {selected.name.toLowerCase()} <ArrowUpRight size={14} aria-hidden="true" /></a>
           </div>
         </section>
@@ -141,7 +142,7 @@ export default function LandingPage() {
 
 function SystemDiagram() {
   return (
-    <svg className="system-diagram" viewBox="0 0 620 230" role="img" aria-label="Traffic flows through a queue, workers, and a dependency">
+    <svg className="system-diagram" viewBox="0 0 620 230" role="img" aria-label="Traffic flows through admission, a queue, workers, and a dependency">
       <line className="diagram-track" x1="42" y1="92" x2="578" y2="92" />
       <line className="diagram-track diagram-track-faint" x1="42" y1="154" x2="578" y2="154" />
       <circle className="diagram-dot diagram-dot-accent" cx="76" cy="92" r="7" />

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -15,7 +16,11 @@ import (
 )
 
 func main() {
-	address := flag.String("address", ":8080", "HTTP listen address")
+	defaultAddress := ":8080"
+	if port := os.Getenv("PORT"); port != "" {
+		defaultAddress = ":" + port
+	}
+	address := flag.String("address", defaultAddress, "HTTP listen address")
 	flag.Parse()
 
 	engine := lab.NewEngine()

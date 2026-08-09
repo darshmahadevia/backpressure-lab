@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react'
+
 export type ScenarioOption = {
   id: string
   name: string
@@ -33,10 +35,13 @@ export function ScenarioPicker({
               <strong>{option.name}</strong>
               {option.description && <small>{option.description}</small>}
             </span>
+            <span className="scenario-choice-state" aria-hidden="true">
+              {selected && <Check size={15} strokeWidth={1.8} />}
+            </span>
           </button>
         )
       })}
-      {options.length === 0 && <span className="scenario-picker-empty">Loading scenarios…</span>}
+      {options.length === 0 && <span className="scenario-picker-empty">Loading scenario presets…</span>}
     </div>
   )
 }

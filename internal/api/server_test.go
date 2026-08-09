@@ -38,6 +38,37 @@ func TestStartExperimentEndpointReturnsAnExperiment(t *testing.T) {
 	}
 }
 
+func TestConfiguredOriginReceivesCORSHeaders(t *testing.T) {
+	t.Setenv("BACKPRESSURE_ALLOWED_ORIGINS", "https://lab.example.com, https://preview.example.com")
+	server := NewServer(lab.NewEngine())
+	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	request.Header.Set("Origin", "https://lab.example.com")
+	recorder := httptest.NewRecorder()
+
+	server.ServeHTTP(recorder, request)
+
+	if got := recorder.Header().Get("Access-Control-Allow-Origin"); got != "https://lab.example.com" {
+		t.Fatalf("allow-origin = %q, want configured origin", got)
+	}
+	if got := recorder.Header().Get("Vary"); got != "Origin" {
+		t.Fatalf("vary = %q, want Origin", got)
+	}
+}
+
+func TestUnconfiguredOriginDoesNotReceiveCORSHeaders(t *testing.T) {
+	t.Setenv("BACKPRESSURE_ALLOWED_ORIGINS", "https://lab.example.com")
+	server := NewServer(lab.NewEngine())
+	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	request.Header.Set("Origin", "https://untrusted.example.com")
+	recorder := httptest.NewRecorder()
+
+	server.ServeHTTP(recorder, request)
+
+	if got := recorder.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("allow-origin = %q, want no header for an unconfigured origin", got)
+	}
+}
+
 func TestStreamEndpointSendsSnapshotEvents(t *testing.T) {
 	engine := lab.NewEngine()
 	server := NewServer(engine)

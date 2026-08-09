@@ -95,7 +95,42 @@ Open <http://localhost:5173> in your browser. Start on the landing page, choose 
 - Press `Ctrl-C` in the API terminal to stop the Go process.
 - Press `Ctrl-C` in the Vite terminal to stop the web server.
 
-There is no deployment, database, login, or cleanup step. Experiments live in memory and disappear when the API process stops.
+There is no database, login, or cleanup step. Experiments live in memory and disappear when the API process stops.
+
+## Deploy the UI to Vercel
+
+The React/Vite interface can be deployed to Vercel. The Go API should run on a long-lived Go host because the experiment engine keeps runs in memory and streams snapshots over Server-Sent Events. A static Vercel deployment cannot provide that runtime reliably.
+
+### 1. Deploy the API
+
+Build and run the API on a host that supports a persistent Go process:
+
+```bash
+go build -o backpressure-lab ./cmd/lab
+./backpressure-lab -address :8080
+```
+
+The API also honors a host-provided `PORT` environment variable, so managed Go hosts can start the binary without a custom flag.
+
+Set `BACKPRESSURE_ALLOWED_ORIGINS` to the exact browser origins that should call the API. Multiple origins are comma-separated:
+
+```bash
+BACKPRESSURE_ALLOWED_ORIGINS=https://your-project.vercel.app,https://your-custom-domain.com
+```
+
+The API must be reachable over HTTPS when the Vercel site uses HTTPS. Confirm it with `https://api.example.com/healthz` before connecting the UI.
+
+### 2. Create the Vercel project
+
+1. Import the repository into Vercel.
+2. Set **Root Directory** to `web`.
+3. Keep the framework preset as **Vite**.
+4. Set the production environment variable `VITE_API_BASE_URL` to the public API origin, for example `https://api.example.com`.
+5. Deploy, then open the Vercel URL and start a short healthy run.
+
+`web/vercel.json` keeps `/lab` as a client-side route. The local Vite proxy is used only when `VITE_API_BASE_URL` is empty, so local development does not need a second frontend configuration.
+
+> If the API is not configured, the landing page still renders, but the experiment controls will show an actionable connection message instead of pretending to have data.
 
 ## A guided experiment path
 

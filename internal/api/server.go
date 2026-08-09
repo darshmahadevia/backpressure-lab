@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -133,8 +134,13 @@ func (s *Server) stream(w http.ResponseWriter, request *http.Request, experiment
 }
 
 func withCORS(next http.Handler) http.Handler {
+	allowedOrigins := configuredOrigins()
 	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		origin := request.Header.Get("Origin")
+		if _, allowed := allowedOrigins[origin]; allowed {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+		}
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Accept")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		if request.Method == http.MethodOptions {
@@ -143,6 +149,21 @@ func withCORS(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, request)
 	})
+}
+
+func configuredOrigins() map[string]struct{} {
+	value := os.Getenv("BACKPRESSURE_ALLOWED_ORIGINS")
+	if value == "" {
+		value = "http://localhost:5173"
+	}
+	origins := make(map[string]struct{})
+	for _, origin := range strings.Split(value, ",") {
+		origin = strings.TrimSpace(origin)
+		if origin != "" {
+			origins[origin] = struct{}{}
+		}
+	}
+	return origins
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {

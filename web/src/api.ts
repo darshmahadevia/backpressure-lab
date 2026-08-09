@@ -1,9 +1,14 @@
 import type { ExperimentView, ScenarioInfo, Snapshot } from './types'
 
 const jsonHeaders = { 'Content-Type': 'application/json' }
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
-async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
-  const response = await fetch(input, init)
+function apiUrl(path: string): string {
+  return `${apiBaseUrl}${path}`
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(apiUrl(path), init)
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { error?: string } | null
     throw new Error(body?.error ?? `Request failed (${response.status})`)
@@ -36,7 +41,7 @@ export function streamExperiment(
   onSnapshot: (snapshot: Snapshot) => void,
   onError: (error: Error) => void,
 ): () => void {
-  const source = new EventSource(`/api/experiments/${id}/stream`)
+  const source = new EventSource(apiUrl(`/api/experiments/${id}/stream`))
   const handleSnapshot = (event: Event) => {
     const message = event as MessageEvent<string>
     try {
