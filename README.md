@@ -1,48 +1,317 @@
 # Backpressure Lab
 
-Backpressure Lab is an interactive systems-engineering lab that makes backend overload visible.
+Backpressure Lab is a **local, educational systems experiment**. It creates real concurrent work in a small Go service so you can watch backend overload emerge instead of reading about it in a diagram.
 
-Start a real concurrent experiment, watch work move through a queue and worker pool, then inspect how arrival rate, throughput, queue depth, tail latency, timeouts, and downstream pressure change as capacity is exceeded.
+You will see work arrive, wait in a queue, occupy finite worker slots, contend with a synthetic dependency, hit deadlines, fail, and recover. Nothing is deployed for you, and no external service or account is required.
 
-## Try it locally
+## What you will learn
 
-Requirements: Go 1.23+, Node.js 22+, npm.
+The lab makes one relationship visible:
 
-```bash
-# terminal 1
-make dev-api
-
-# terminal 2
-cd web && npm install && npm run dev
+```text
+                 finite capacity
+                       │
+arrival rate ────────► queue ────────► throughput
+                       │
+                waiting time / failure
 ```
 
-Open <http://localhost:5173> for the landing page, then choose **Run a traffic spike** to enter the lab at `/lab`. The first few seconds are calm; then offered load jumps above the worker pool's capacity and the baseline queue, p99 latency, and timeout count become visible.
+When offered work is greater than the system can drain, the queue grows. Queue wait becomes latency; deadlines turn some waiting work into timeouts; a slow or failing dependency reduces effective capacity even when incoming traffic is unchanged.
 
-The API listens on `http://localhost:8080`. Run the full checks with:
+This is a teaching instrument, not a production benchmark. The dependency is synthetic, the experiments are ephemeral, and the workload runs on your machine.
+
+## Requirements
+
+- Go 1.23 or newer
+- Node.js 22 or newer
+- npm
+- A terminal and a modern browser
+
+The repository includes an `.nvmrc` with the expected Node major version:
+
+```bash
+nvm install
+nvm use
+```
+
+If you do not use `nvm`, install Go and Node.js by your preferred method and verify them:
+
+```bash
+go version
+node --version
+npm --version
+```
+
+## Run it locally
+
+There are two processes: a Go API and a Vite development server. Keep both terminals open.
+
+### 1. Clone the project
+
+```bash
+git clone https://github.com/darshmahadevia/backpressure-lab.git
+cd backpressure-lab
+```
+
+### 2. Start the API
+
+From the repository root:
+
+```bash
+make dev-api
+```
+
+You should see a message that the API is listening on `http://localhost:8080`.
+
+Check it from another terminal:
+
+```bash
+curl http://localhost:8080/healthz
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+### 3. Install and start the web UI
+
+In a second terminal:
+
+```bash
+cd backpressure-lab/web
+npm install
+npm run dev -- --host localhost
+```
+
+Open <http://localhost:5173> in your browser. Start on the landing page, choose a scenario button, and enter the lab. The default traffic-spike run begins gently, exceeds capacity for a while, then gives the system time to recover.
+
+> Use `localhost` for the UI URL. The development API's CORS policy allows `http://localhost:5173`.
+
+### 4. Stop everything
+
+- Stop an active experiment with the **Stop** button in the lab.
+- Press `Ctrl-C` in the API terminal to stop the Go process.
+- Press `Ctrl-C` in the Vite terminal to stop the web server.
+
+There is no deployment, database, login, or cleanup step. Experiments live in memory and disappear when the API process stops.
+
+## A guided experiment path
+
+Run the scenarios in this order. Let each run finish so you can compare the terminal summary.
+
+### 1. Healthy system
+
+This is the control run. Traffic stays at 45 requests per second with a healthy synthetic dependency. Expect a small, stable queue, low tail latency, and completed work that tracks incoming work.
+
+**Question:** What does the system look like before capacity becomes the problem?
+
+### 2. Sudden traffic spike
+
+The run starts at 35 requests per second, jumps to 340 requests per second for 10 seconds, then eases to 45. The baseline has 12 workers, a 1.5-second request deadline, and a generous internal queue cap.
+
+Watch for:
+
+1. Incoming rate rising above completed rate.
+2. Queue depth climbing while workers stay busy.
+3. p99 latency separating from p50 latency.
+4. Timeouts appearing after queue wait consumes the deadline.
+5. Recovery continuing after the traffic spike ends.
+
+**Question:** Which signal changes first, and which one tells you the experience has become expensive?
+
+### 3. Slow dependency
+
+Traffic stays steady at 70 requests per second, but the synthetic dependency becomes several times slower between seconds 5 and 15.
+
+**Question:** What happens when capacity drops underneath the same offered load? Does overload require a traffic spike?
+
+### 4. Dependency failure
+
+Traffic stays at 90 requests per second. Between seconds 4 and 12, the dependency has a 55% failure probability.
+
+**Question:** How do failures, timeouts, downstream pressure, and queueing relate when work continues arriving during a failure window?
+
+## How to read the lab
+
+| Signal | Meaning | What to look for |
+| --- | --- | --- |
+| Incoming / offered load | Requests generated by the workload | The work the system is being asked to accept |
+| Accepted rate | Requests admitted into the internal queue | The difference from incoming shows safety-cap rejection |
+| Completed rate / throughput | Requests that finish successfully | A flat line while incoming rises means capacity is saturated |
+| Queue depth | Accepted work waiting for a worker | Growth means work is arriving faster than it is draining |
+| Active operations | Work currently occupying worker slots | A value near 12 means the baseline worker pool is full |
+| Downstream pressure | Synthetic dependency load relative to healthy capacity | Higher pressure increases latency and can reduce effective capacity |
+| p50 / p95 / p99 latency | Median and tail request latency, including queue wait | A widening tail shows that the slowest requests are paying for contention |
+| Failed | Requests that reach a dependency failure | Compare the failure window with downstream behavior |
+| Timeouts | Requests that exceed the 1.5-second deadline | Queue wait and dependency latency both consume the deadline |
+| Max queue / max active | Peak values for the run | Useful for comparing scenarios after they finish |
+
+### Important safety-cap caveat
+
+Phase 1 is intentionally a **baseline**. It does not yet implement user-facing bounded work, load shedding, concurrency limiting, circuit breaking, retries, or adaptive protection.
+
+The queue has an internal capacity of 2,000 items only to keep a local demo process safe. `safety-cap rejected` is not a finished backpressure strategy. Treat it as a host-protection guard and not as the lesson's answer to overload.
+
+## What is real and what is synthetic?
+
+**Real in this process:**
+
+- concurrent workload generation;
+- queue wait and worker contention;
+- request cancellation and deadlines;
+- dependency latency and failures influencing work;
+- aggregate metrics calculated from completed operations;
+- Server-Sent Event snapshots streamed to the browser.
+
+**Synthetic by design:**
+
+- the downstream dependency is an in-process model;
+- scenario traffic and dependency behavior are predefined;
+- experiments use ephemeral in-memory state;
+- this is not a representation of any production service or benchmark result.
+
+## API-only walkthrough
+
+The browser is the recommended way to learn the lab, but the API is intentionally small enough to explore with `curl`.
+
+List scenarios:
+
+```bash
+curl http://localhost:8080/api/scenarios
+```
+
+Start a 24-second traffic-spike experiment:
+
+```bash
+curl -X POST http://localhost:8080/api/experiments \
+  -H 'Content-Type: application/json' \
+  -d '{"scenario":"traffic-spike","durationSeconds":24}'
+```
+
+The response contains an experiment `id`. Replace `<id>` below with that value:
+
+```bash
+# Read the current aggregate view
+curl http://localhost:8080/api/experiments/<id>
+
+# Stream snapshots until the experiment completes
+curl -N http://localhost:8080/api/experiments/<id>/stream
+
+# Stop an active experiment
+curl -X POST http://localhost:8080/api/experiments/<id>/stop
+```
+
+The start request also accepts an optional integer `seed` for a repeatable dependency-randomness seed:
+
+```json
+{"scenario":"dependency-failure","durationSeconds":20,"seed":42}
+```
+
+The API uses REST for commands and reads, and Server-Sent Events for live snapshots. There is no authentication because it is designed for local use.
+
+## Architecture and code tour
+
+```text
+React + Vite UI
+       │  REST commands + Server-Sent Events
+       ▼
+Go HTTP API → experiment engine
+                    │
+        workload → safety-cap queue
+                    │
+               worker pool
+                    │
+          synthetic dependency
+                    │
+              metrics recorder
+```
+
+Start here if you want to follow the implementation:
+
+- [`cmd/lab/main.go`](cmd/lab/main.go) — starts the HTTP server and handles shutdown.
+- [`internal/api/server.go`](internal/api/server.go) — HTTP routes, JSON responses, CORS, and SSE streaming.
+- [`internal/lab/engine.go`](internal/lab/engine.go) — experiment lifecycle and concurrent runtime.
+- [`internal/lab/scenario.go`](internal/lab/scenario.go) — the four traffic/dependency profiles.
+- [`internal/lab/dependency.go`](internal/lab/dependency.go) — synthetic latency and failure behavior.
+- [`internal/lab/metrics.go`](internal/lab/metrics.go) — aggregate rates, latency, queue, and outcome metrics.
+- [`web/src/LandingPage.tsx`](web/src/LandingPage.tsx) — minimal project introduction and scenario selection.
+- [`web/src/LabPage.tsx`](web/src/LabPage.tsx) — controls, live pipeline, charts, and summary.
+- [`web/src/api.ts`](web/src/api.ts) — browser API and SSE client.
+- [`docs/architecture.md`](docs/architecture.md) — the current runtime boundary and safety-cap decision.
+
+The backend uses one experiment object per run. Each experiment owns its workload, queue, workers, dependency model, cancellation tree, random seed, metrics recorder, and stream subscribers. See [`docs/adr/0001-phase-one-runtime.md`](docs/adr/0001-phase-one-runtime.md) for why the project starts as a single process.
+
+## Verify your changes
+
+From the repository root:
 
 ```bash
 make check
 ```
 
-## Surfaces
+This runs Go tests, race-enabled Go tests, frontend typechecking, frontend tests, and a production web build.
 
-- `/` — portfolio landing page explaining the overload mechanism and the available scenarios.
-- `/lab` — focused experiment workspace with controls, pipeline telemetry, charts, and run summary.
+Useful focused commands:
 
-## Phase 1 surface
+```bash
+go test ./...
+go test -race ./...
+cd web && npm run typecheck
+cd web && npm test -- --run
+cd web && npm run build
+```
 
-- Four built-in scenarios: healthy system, sudden traffic spike, slow dependency, and dependency failure.
-- A real workload generator, safety-capped queue, concurrent workers, contention-aware synthetic dependency, and request deadlines.
-- Live REST + Server-Sent Events API with aggregate snapshots and terminal summaries.
-- Dashboard pipeline: incoming → admission → queue → workers → dependency.
-- Live rates, outcomes, queue depth, active operations, downstream pressure, p50/p95/p99 latency, and a plain-language operator reading.
+## Troubleshooting
 
-Phase 1 intentionally uses the baseline profile. Bounded work, load shedding, concurrency limiting, circuit breaking, adaptive protection, retries, and comparison mode are later lab modules.
+### `listen tcp :8080: bind: address already in use`
 
-## Architecture
+Another process is using the API port. Find it, then stop it if it belongs to an old lab run:
 
-The first slice is a single Go experiment engine exposed through REST and Server-Sent Events, with a React dashboard as the operator surface. Each experiment owns its workload, queue, worker pool, synthetic downstream dependency, cancellation tree, and metrics recorder. See [`docs/architecture.md`](docs/architecture.md).
+```bash
+lsof -nP -iTCP:8080 -sTCP:LISTEN
+kill <pid>
+```
 
-## GitHub workflow
+The Vite server uses port 5173. Find a process on that port in the same way with `-iTCP:5173`.
 
-Work is tracked in GitHub Issues and implementation is pushed directly to `main` after verification. The current Phase 0 and Phase 1 map is [issue #1](https://github.com/darshmahadevia/backpressure-lab/issues/1).
+### The page says the API is unavailable
+
+Confirm that the API terminal is still running and that the health check succeeds:
+
+```bash
+curl http://localhost:8080/healthz
+```
+
+If the health check works, reload <http://localhost:5173>. If you opened the UI at `127.0.0.1:5173`, switch to `localhost:5173` so the browser matches the development CORS origin.
+
+### `npm install` or the Vite build fails
+
+Confirm Node is 22 or newer, then reinstall the web dependencies:
+
+```bash
+cd web
+node --version
+rm -rf node_modules
+npm install
+npm run build
+```
+
+### The UI loads but the experiment does not start
+
+Open the browser developer console and check that the API is reachable. Also make sure the API and UI are both running from the same local session; the frontend does not ship with prerecorded metrics or a fallback simulator.
+
+### How do I stop a run that is taking too long?
+
+Use **Stop** in the lab. The API will stop admitting new work and drain for its configured grace period. If the browser is closed, the API process can still own the experiment until it completes or you stop the API with `Ctrl-C`.
+
+## Scope and next lessons
+
+The current release is Phase 1: a truthful baseline for seeing overload. Future lessons can add protection strategies and compare them against this baseline, including bounded work, load shedding, concurrency limits, circuit breaking, adaptive protection, retries, and comparison mode.
+
+Those are intentionally not included yet. Keeping the first experiment small makes the causal relationship easier to see.
+
+## Project workflow
+
+Work is tracked in [GitHub Issues](https://github.com/darshmahadevia/backpressure-lab/issues) and changes are pushed directly to `main`. The project is meant to be cloned, run, inspected, and modified locally by the learner.
