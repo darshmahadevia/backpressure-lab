@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import LabPage from './LabPage'
 import type { ExperimentView, ScenarioInfo, Snapshot } from './types'
 import * as api from './api'
 
@@ -79,8 +80,9 @@ const overloadedSnapshot: Snapshot = {
   totalTimedOut: 400,
 }
 
-describe('Backpressure Lab dashboard', () => {
+describe('Backpressure Lab surfaces', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/')
     vi.mocked(api.fetchScenarios).mockResolvedValue(scenarios)
     vi.mocked(api.startExperiment).mockResolvedValue(runningView)
     vi.mocked(api.streamExperiment).mockImplementation((_id, onSnapshot) => {
@@ -89,17 +91,18 @@ describe('Backpressure Lab dashboard', () => {
     })
   })
 
-  it('explains the lab before a run starts', async () => {
+  it('gives the portfolio visitor a separate landing page', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: /capacity is finite/i })).toBeInTheDocument()
-    expect(await screen.findByRole('option', { name: 'Sudden traffic spike' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /run experiment/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /traffic outruns capacity/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /run a traffic spike/i })).toHaveAttribute('href', '/lab?scenario=traffic-spike')
+    expect(screen.queryByRole('heading', { name: /the pipeline, right now/i })).not.toBeInTheDocument()
   })
 
-  it('starts a run and surfaces the live overload signal', async () => {
+  it('starts a lab run and surfaces the live overload signal', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    window.history.replaceState({}, '', '/lab?scenario=traffic-spike')
+    render(<LabPage />)
 
     await user.click(await screen.findByRole('button', { name: /run experiment/i }))
 

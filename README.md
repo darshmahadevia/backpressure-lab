@@ -16,13 +16,18 @@ make dev-api
 cd web && npm install && npm run dev
 ```
 
-Open <http://localhost:5173>, select **Sudden traffic spike**, and press **Run experiment**. The first few seconds are calm; then offered load jumps above the worker pool's capacity and the baseline queue, p99 latency, and timeout count become visible.
+Open <http://localhost:5173> for the landing page, then choose **Run a traffic spike** to enter the lab at `/lab`. The first few seconds are calm; then offered load jumps above the worker pool's capacity and the baseline queue, p99 latency, and timeout count become visible.
 
 The API listens on `http://localhost:8080`. Run the full checks with:
 
 ```bash
 make check
 ```
+
+## Surfaces
+
+- `/` — portfolio landing page explaining the overload mechanism and the available scenarios.
+- `/lab` — focused experiment workspace with controls, pipeline telemetry, charts, and run summary.
 
 ## Phase 1 surface
 
