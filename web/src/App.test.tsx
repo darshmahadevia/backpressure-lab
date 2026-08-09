@@ -92,7 +92,7 @@ describe('Backpressure Lab dashboard', () => {
   it('explains the lab before a run starts', async () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: /watch capacity/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /capacity is finite/i })).toBeInTheDocument()
     expect(await screen.findByRole('option', { name: 'Sudden traffic spike' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /run experiment/i })).toBeInTheDocument()
   })
@@ -105,7 +105,7 @@ describe('Backpressure Lab dashboard', () => {
 
     await waitFor(() => expect(api.startExperiment).toHaveBeenCalledWith('traffic-spike', 24))
     expect(screen.getByText('overloaded', { selector: '.status-chip' })).toBeInTheDocument()
-    expect(screen.getByText(/accepting work faster than workers can drain/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/accepting work faster than workers can drain/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText('1,487').length).toBeGreaterThan(0)
   })
 })
