@@ -26,6 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#050505' : '#f4f4f0')
     try {
       window.localStorage.setItem('backpressure-theme', theme)
     } catch {
@@ -52,11 +53,11 @@ export function ThemeToggle() {
       className="theme-toggle"
       type="button"
       aria-label={`Switch to ${nextTheme} mode`}
+      title={`Switch to ${nextTheme} mode`}
       aria-pressed={theme === 'light'}
       onClick={() => setTheme(nextTheme)}
     >
-      <Icon size={16} aria-hidden="true" />
-      <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+      <Icon size={15} aria-hidden="true" />
     </button>
   )
 }

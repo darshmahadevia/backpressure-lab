@@ -95,8 +95,8 @@ describe('Backpressure Lab surfaces', () => {
   it('gives the portfolio visitor a separate landing page', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: /traffic outruns capacity/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /run a traffic spike/i })).toHaveAttribute('href', '/lab?scenario=traffic-spike')
+    expect(screen.getByRole('heading', { name: /work arrives faster than it leaves/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /open the experiment/i })).toHaveAttribute('href', '/lab?scenario=traffic-spike')
     expect(screen.queryByRole('heading', { name: /the pipeline, right now/i })).not.toBeInTheDocument()
   })
 

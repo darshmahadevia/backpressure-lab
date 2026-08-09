@@ -1,81 +1,62 @@
 import { useState } from 'react'
-import {
-  Activity,
-  AlertCircle,
-  ArrowRight,
-  ArrowUpRight,
-  Clock3,
-  Database,
-  Gauge,
-  Layers3,
-  Menu,
-  Radio,
-  Server,
-  X,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Menu, X } from 'lucide-react'
+import { ScenarioPicker, type ScenarioOption } from './ScenarioPicker'
 import { ThemeToggle } from './Theme'
 
-const scenarioRows: Array<{
-  id: string
-  name: string
-  description: string
-  effect: string
-  icon: LucideIcon
-}> = [
+const scenarioRows: Array<ScenarioOption & { effect: string }> = [
   {
     id: 'traffic-spike',
     name: 'Sudden traffic spike',
-    description: 'A safe warmup jumps above capacity, then eases so recovery is visible.',
-    effect: 'queue growth + tail latency',
-    icon: Radio,
+    description: 'Traffic jumps above capacity, then eases so recovery is visible.',
+    effect: 'queue growth and tail latency',
   },
   {
     id: 'slow-dependency',
     name: 'Slow dependency',
-    description: 'Traffic stays steady while the downstream service becomes several times slower.',
+    description: 'The downstream service becomes slower while traffic stays steady.',
     effect: 'capacity collapses underneath load',
-    icon: Clock3,
   },
   {
     id: 'dependency-failure',
     name: 'Dependency failure',
-    description: 'A failure window creates errors while incoming work continues to arrive.',
-    effect: 'errors + timeout pressure',
-    icon: AlertCircle,
+    description: 'A failure window creates errors while new work keeps arriving.',
+    effect: 'errors and timeout pressure',
   },
   {
     id: 'healthy',
     name: 'Healthy system',
-    description: 'A control run keeps traffic below the worker pool’s effective capacity.',
-    effect: 'stable queue + low latency',
-    icon: Gauge,
+    description: 'A control run keeps traffic below the worker pool capacity.',
+    effect: 'stable queue and low latency',
   },
 ]
 
 export default function LandingPage() {
+  const [selectedScenario, setSelectedScenario] = useState('traffic-spike')
   const [menuOpen, setMenuOpen] = useState(false)
+  const selected = scenarioRows.find((scenario) => scenario.id === selectedScenario) ?? scenarioRows[0]
+  const labHref = `/lab?scenario=${selected.id}`
 
-  const closeMenu = () => setMenuOpen(false)
+  const chooseScenario = (scenarioId: string) => {
+    setSelectedScenario(scenarioId)
+    setMenuOpen(false)
+  }
 
   return (
     <div className="landing-shell">
       <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="landing-header">
         <a className="brand" href="/" aria-label="Backpressure Lab home">
-          <span className="brand-mark"><Activity size={17} strokeWidth={2.4} /></span>
-          <span>Backpressure <em>Lab</em></span>
+          <span className="brand-mark" aria-hidden="true" />
+          <span>BACKPRESSURE LAB</span>
         </a>
         <nav className="landing-nav" aria-label="Primary navigation">
-          <a href="#why">Why it matters</a>
-          <a href="#scenarios">Scenarios</a>
-          <a href="#model">The model</a>
+          <a href="#experiment">Experiment</a>
+          <a href="#model">Model</a>
+          <a href="https://github.com/darshmahadevia/backpressure-lab" target="_blank" rel="noreferrer">Source</a>
         </nav>
         <div className="header-actions">
           <ThemeToggle />
-          <a className="header-action" href="/lab?scenario=traffic-spike">
-            Open the lab <ArrowUpRight size={16} aria-hidden="true" />
-          </a>
+          <a className="header-lab-link" href={labHref}>Enter lab <ArrowUpRight size={14} aria-hidden="true" /></a>
           <button
             className="mobile-nav-toggle"
             type="button"
@@ -83,15 +64,14 @@ export default function LandingPage() {
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((current) => !current)}
           >
-            {menuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+            {menuOpen ? <X size={17} aria-hidden="true" /> : <Menu size={17} aria-hidden="true" />}
           </button>
         </div>
         {menuOpen && (
           <nav className="mobile-nav-panel" aria-label="Mobile navigation">
-            <a href="#why" onClick={closeMenu}>Why it matters</a>
-            <a href="#scenarios" onClick={closeMenu}>Scenarios</a>
-            <a href="#model" onClick={closeMenu}>The model</a>
-            <a href="/lab?scenario=traffic-spike" onClick={closeMenu}>Open the lab</a>
+            <a href="#experiment" onClick={() => setMenuOpen(false)}>Experiment</a>
+            <a href="#model" onClick={() => setMenuOpen(false)}>Model</a>
+            <a href="https://github.com/darshmahadevia/backpressure-lab" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>Source</a>
           </nav>
         )}
       </header>
@@ -99,128 +79,87 @@ export default function LandingPage() {
       <main id="main-content">
         <section className="landing-hero" aria-labelledby="landing-title">
           <div className="landing-hero-copy">
-            <h1 id="landing-title">When traffic outruns capacity, <span>the system tells you why.</span></h1>
+            <h1 id="landing-title">See what happens when work arrives faster than it leaves.</h1>
             <p className="landing-lede">
-              Backpressure Lab is a small, real-concurrency experiment for seeing overload happen: work arrives, waits, contends, times out, and eventually recovers.
+              Backpressure Lab is a small, real-concurrency experiment for watching overload emerge: work arrives, waits, contends, times out, and recovers.
             </p>
             <div className="landing-actions">
-              <a className="button button-primary" href="/lab?scenario=traffic-spike">
-                Run a traffic spike <ArrowRight size={16} aria-hidden="true" />
-              </a>
-              <a className="button button-quiet" href="#model">
-                See the model <ArrowRight size={16} aria-hidden="true" />
-              </a>
+              <a className="button button-primary" href={labHref}>Open the experiment <ArrowRight size={15} aria-hidden="true" /></a>
+              <a className="text-link" href="#model">See the model <ArrowRight size={14} aria-hidden="true" /></a>
             </div>
-            <div className="landing-facts" aria-label="Lab facts">
-              <div><strong>01</strong><span>real concurrent work</span></div>
-              <div><strong>02</strong><span>live metric snapshots</span></div>
-              <div><strong>03</strong><span>no scripted curves</span></div>
+            <div className="hero-meta" aria-label="Project characteristics">
+              <span>real concurrent work</span>
+              <span>live snapshots</span>
+              <span>no scripted curves</span>
             </div>
           </div>
 
-          <div className="system-figure" id="model" aria-labelledby="model-title">
-            <div className="figure-header">
-              <div>
-                <span className="figure-label">THE MODEL</span>
-                <h2 id="model-title">A finite pipeline</h2>
-              </div>
-              <span className="figure-status"><i /> baseline</span>
+          <figure className="hero-proof" id="model">
+            <div className="proof-heading">
+              <h2>Four places to see pressure.</h2>
+              <span>baseline / finite capacity</span>
             </div>
-            <div className="system-map" aria-label="Traffic flows through admission, a queue, workers, and a downstream dependency">
-              <SystemNode icon={Radio} label="traffic" detail="35 → 340 req/s" />
-              <SystemConnector />
-              <SystemNode icon={Layers3} label="queue" detail="waiting work" />
-              <SystemConnector />
-              <SystemNode icon={Server} label="workers" detail="12 slots" />
-              <SystemConnector />
-              <SystemNode icon={Database} label="dependency" detail="finite capacity" />
-            </div>
-            <div className="figure-readout">
-              <div>
-                <span>WHAT CHANGES</span>
-                <strong>offered load</strong>
-              </div>
-              <ArrowRight size={16} aria-hidden="true" />
-              <div>
-                <span>WHAT EMERGES</span>
-                <strong>waiting time</strong>
-              </div>
-            </div>
-            <div className="figure-foot">
-              <span>request deadline <strong>1.5s</strong></span>
-              <span>safety cap <strong>2,000</strong></span>
-            </div>
+            <SystemDiagram />
+            <figcaption>
+              The experiment changes offered load or dependency behavior. The queue and tail latency show the cost.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section className="method-section" aria-labelledby="method-title">
+          <div className="section-lede">
+            <h2 id="method-title">One condition. One live run.</h2>
+            <p>Change one thing, then watch the relationship between arrival rate and finite capacity become observable.</p>
+          </div>
+          <div className="method-list">
+            <div><strong>01</strong><span>Work enters the system.</span></div>
+            <div><strong>02</strong><span>Workers reach their limit.</span></div>
+            <div><strong>03</strong><span>Waiting time becomes the signal.</span></div>
           </div>
         </section>
 
-        <section className="landing-statement" id="why" aria-labelledby="why-title">
-          <div className="statement-lede">
-            <span className="section-index">01</span>
-            <h2 id="why-title">Most overload is invisible until it is expensive.</h2>
+        <section className="experiment-section" id="experiment" aria-labelledby="experiment-title">
+          <div className="section-lede">
+            <h2 id="experiment-title">Choose a condition.</h2>
+            <p>Each preset makes a different part of the mechanism visible.</p>
           </div>
-          <div className="statement-body">
-            <p>Average latency can look fine while the slowest requests are already waiting behind a growing queue. Throughput can flatten while incoming work keeps climbing.</p>
-            <p>The lab makes those relationships concrete. You change one condition, then watch the system respond in real time.</p>
-          </div>
-        </section>
-
-        <section className="landing-scenarios" id="scenarios" aria-labelledby="scenarios-title">
-          <div className="section-heading-row">
-            <div className="section-heading">
-              <span className="section-index">02</span>
-              <div>
-                <h2 id="scenarios-title">Choose a condition.</h2>
-                <p>Each preset creates a different path to overload. Start with the spike, then try changing capacity instead of traffic.</p>
-              </div>
-            </div>
-            <a className="text-link" href="/lab">View all in the lab <ArrowUpRight size={16} aria-hidden="true" /></a>
-          </div>
-          <div className="scenario-list">
-            {scenarioRows.map((scenario) => (
-              <a className="scenario-row" href={`/lab?scenario=${scenario.id}`} key={scenario.id}>
-                <span className="scenario-icon"><scenario.icon size={17} aria-hidden="true" /></span>
-                <span className="scenario-main">
-                  <strong>{scenario.name}</strong>
-                  <span>{scenario.description}</span>
-                </span>
-                <span className="scenario-effect">{scenario.effect}</span>
-                <ArrowUpRight className="scenario-arrow" size={17} aria-hidden="true" />
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <section className="landing-cta" aria-labelledby="cta-title">
-          <div>
-            <span className="section-index">03</span>
-            <h2 id="cta-title">Start with the moment<br />the queue appears.</h2>
-          </div>
-          <div className="cta-copy">
-            <p>The first run is already configured. You only need to press play and watch the relationship between arrival rate and capacity unfold.</p>
-            <a className="button button-primary" href="/lab?scenario=traffic-spike">Open the experiment <ArrowUpRight size={16} aria-hidden="true" /></a>
+          <ScenarioPicker options={scenarioRows} value={selectedScenario} onChange={chooseScenario} />
+          <div className="selection-line">
+            <span>{selected.effect}</span>
+            <a className="text-link" href={labHref}>Run {selected.name.toLowerCase()} <ArrowUpRight size={14} aria-hidden="true" /></a>
           </div>
         </section>
       </main>
 
       <footer className="landing-footer">
-        <a className="brand" href="/" aria-label="Backpressure Lab home"><span className="brand-mark"><Activity size={15} aria-hidden="true" /></span><span>Backpressure <em>Lab</em></span></a>
-        <span>Real work. Synthetic dependency. Ephemeral run.</span>
-        <span>Phase 01 / baseline</span>
+        <a className="brand" href="/" aria-label="Backpressure Lab home"><span className="brand-mark" aria-hidden="true" /><span>BACKPRESSURE LAB</span></a>
+        <span>real work / synthetic dependency / ephemeral run</span>
       </footer>
     </div>
   )
 }
 
-function SystemNode({ icon: Icon, label, detail }: { icon: LucideIcon; label: string; detail: string }) {
+function SystemDiagram() {
   return (
-    <div className="system-node">
-      <Icon size={16} aria-hidden="true" />
-      <span>{label}</span>
-      <strong>{detail}</strong>
-    </div>
+    <svg className="system-diagram" viewBox="0 0 620 230" role="img" aria-label="Traffic flows through a queue, workers, and a dependency">
+      <line className="diagram-track" x1="42" y1="92" x2="578" y2="92" />
+      <line className="diagram-track diagram-track-faint" x1="42" y1="154" x2="578" y2="154" />
+      <circle className="diagram-dot diagram-dot-accent" cx="76" cy="92" r="7" />
+      <circle className="diagram-dot" cx="246" cy="92" r="7" />
+      <circle className="diagram-dot" cx="406" cy="92" r="7" />
+      <circle className="diagram-dot" cx="566" cy="92" r="7" />
+      <path className="diagram-flow" d="M 92 92 C 132 60, 170 60, 226 92 S 330 124, 386 92 S 490 60, 546 92" />
+      <rect className="diagram-queue" x="218" y="137" width="56" height="10" rx="2" />
+      <rect className="diagram-queue" x="282" y="137" width="35" height="10" rx="2" />
+      <rect className="diagram-queue" x="325" y="137" width="17" height="10" rx="2" />
+      <text x="42" y="49">incoming</text>
+      <text x="212" y="49">queue</text>
+      <text x="373" y="49">workers</text>
+      <text x="523" y="49">dependency</text>
+      <text className="diagram-value" x="42" y="190">offered load</text>
+      <text className="diagram-value" x="218" y="190">waiting work</text>
+      <text className="diagram-value" x="373" y="190">finite slots</text>
+      <text className="diagram-value" x="523" y="190" textAnchor="end">deadline</text>
+    </svg>
   )
-}
-
-function SystemConnector() {
-  return <span className="system-connector" aria-hidden="true"><i /></span>
 }
