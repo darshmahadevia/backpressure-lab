@@ -7,6 +7,9 @@ coverage.out
 web/node_modules/
 web/dist/
 web/.vite/
+*.tsbuildinfo
+web/vite.config.js
+web/vite.config.d.ts
 
 # OS / editor
 .DS_Store
