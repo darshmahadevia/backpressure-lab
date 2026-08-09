@@ -1,0 +1,19 @@
+# Go
+/bin/
+*.test
+coverage.out
+
+# Node
+web/node_modules/
+web/dist/
+web/.vite/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local runtime output
+/tmp/
+*.log
