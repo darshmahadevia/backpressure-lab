@@ -580,7 +580,7 @@ input[type="range"] {
 
 .metric-strip {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   margin-top: 18px;
   border-top: 1px solid var(--line-bright);
   border-bottom: 1px solid var(--line-bright);
@@ -874,7 +874,7 @@ input[type="range"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .metric:nth-child(3) {
+  .metric:nth-child(3n) {
     border-right: 0;
   }
 
@@ -882,12 +882,9 @@ input[type="range"] {
     border-top: 1px solid var(--line);
   }
 
-  .metric:nth-child(4) {
+  .metric:nth-child(3n + 1),
+  .metric:nth-child(3n + 2) {
     border-right: 1px solid var(--line);
-  }
-
-  .metric:nth-child(5) {
-    grid-column: span 2;
   }
 }
 
@@ -918,9 +915,7 @@ input[type="range"] {
     grid-template-columns: 1fr 1fr;
   }
 
-  .metric,
-  .metric:nth-child(3),
-  .metric:nth-child(4) {
+  .metric:nth-child(2n) {
     border-right: 0;
   }
 
@@ -928,8 +923,8 @@ input[type="range"] {
     border-top: 1px solid var(--line);
   }
 
-  .metric:nth-child(5) {
-    grid-column: auto;
+  .metric:nth-child(2n + 1) {
+    border-right: 1px solid var(--line);
   }
 
   .section-heading-row {

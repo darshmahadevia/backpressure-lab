@@ -301,7 +301,8 @@ function App() {
           <Metric label="incoming rate" value={formatRate(snapshot.incomingRate)} detail={`${formatNumber(snapshot.totalIncoming)} total`} tone="neutral" />
           <Metric label="completed rate" value={formatRate(snapshot.completedRate)} detail={`${formatNumber(snapshot.totalCompleted)} successful`} tone="success" />
           <Metric label="queue depth" value={formatNumber(snapshot.queueDepth)} detail={`max ${formatNumber(snapshot.maxQueueDepth)}`} tone={snapshot.queueDepth > 0 ? 'warning' : 'neutral'} />
-          <Metric label="p99 latency" value={formatLatency(snapshot.p99LatencyMs)} detail={`p95 ${formatLatency(snapshot.p95LatencyMs)}`} tone={snapshot.p99LatencyMs > 1000 ? 'danger' : 'neutral'} />
+          <Metric label="p99 latency" value={formatLatency(snapshot.p99LatencyMs)} detail={`p50 ${formatLatency(snapshot.p50LatencyMs)} · p95 ${formatLatency(snapshot.p95LatencyMs)}`} tone={snapshot.p99LatencyMs > 1000 ? 'danger' : 'neutral'} />
+          <Metric label="failed" value={formatNumber(snapshot.totalFailed)} detail={formatRate(snapshot.failedRate)} tone={snapshot.totalFailed > 0 ? 'danger' : 'neutral'} />
           <Metric label="timeouts" value={formatNumber(snapshot.totalTimedOut)} detail={formatRate(snapshot.timeoutRate)} tone={snapshot.totalTimedOut > 0 ? 'danger' : 'neutral'} />
         </section>
 
